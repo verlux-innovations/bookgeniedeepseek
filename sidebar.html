@@ -1,0 +1,188 @@
+<!-- This file includes embedded JS/CSS due to project type rules -->
+<script>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 10px;
+      }
+      .section {
+        margin-bottom: 20px;
+      }
+      button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      input, select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+      }
+      .loading {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+      .status-message {
+        color: #4CAF50;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+      .error-message {
+        color: #f44336;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+      .dark-theme {
+        background-color: #333;
+        color: #fff;
+      }
+      .light-theme {
+        background-color: #fff;
+        color: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="section">
+      <h2>BookGenie</h2>
+      <button id="generateTitlesBtn" onclick="handleGenerateTitles()">Generate Titles</button>
+      <button id="generateChaptersBtn" onclick="handleGenerateChapters()">Generate Chapters</button>
+      <button id="exportToDocsBtn" onclick="handleExportToDocs()">Export to Google Docs</button>
+      <div id="statusMessage" class="status-message"></div>
+      <div id="errorMessage" class="error-message"></div>
+    </div>
+    <div class="section">
+      <h2>Settings</h2>
+      <label for="theme">Theme:</label>
+      <select id="theme" onchange="applyTheme()">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+      <button onclick="saveUserPreferences()">Save Preferences</button>
+    </div>
+
+    <script>
+      function renderUI() {
+        loadUserPreferences();
+      }
+
+      function handleGenerateTitles() {
+        setLoadingState('generateTitlesBtn', true);
+        google.script.run
+          .withSuccessHandler(() => {
+            setLoadingState('generateTitlesBtn', false);
+            showStatus('Titles generated successfully!');
+          })
+          .withFailureHandler((error) => {
+            setLoadingState('generateTitlesBtn', false);
+            showError('Failed to generate titles: ' + error.message);
+          })
+          .generateTitles();
+      }
+
+      function handleGenerateChapters() {
+        setLoadingState('generateChaptersBtn', true);
+        google.script.run
+          .withSuccessHandler(() => {
+            setLoadingState('generateChaptersBtn', false);
+            showStatus('Chapters generated successfully!');
+          })
+          .withFailureHandler((error) => {
+            setLoadingState('generateChaptersBtn', false);
+            showError('Failed to generate chapters: ' + error.message);
+          })
+          .generateChapters();
+      }
+
+      function handleExportToDocs() {
+        setLoadingState('exportToDocsBtn', true);
+        google.script.run
+          .withSuccessHandler(() => {
+            setLoadingState('exportToDocsBtn', false);
+            showStatus('Exported to Google Docs successfully!');
+          })
+          .withFailureHandler((error) => {
+            setLoadingState('exportToDocsBtn', false);
+            showError('Failed to export to Google Docs: ' + error.message);
+          })
+          .exportToDocs();
+      }
+
+      function loadUserPreferences() {
+        google.script.run
+          .withSuccessHandler(applyPreferences)
+          .withFailureHandler((error) => {
+            showError('Failed to load preferences: ' + error.message);
+          })
+          .loadUserPreferences();
+      }
+
+      function applyPreferences(settings) {
+        document.getElementById('theme').value = settings.theme || 'light';
+        applyTheme();
+      }
+
+      function applyTheme() {
+        const theme = document.getElementById('theme').value;
+        document.body.className = theme + '-theme';
+      }
+
+      function saveUserPreferences() {
+        const settings = {
+          theme: document.getElementById('theme').value
+        };
+        google.script.run
+          .withSuccessHandler(() => {
+            showStatus('Preferences saved successfully!');
+          })
+          .withFailureHandler((error) => {
+            showError('Failed to save preferences: ' + error.message);
+          })
+          .saveUserPreferences(settings);
+      }
+
+      function setLoadingState(buttonId, isLoading) {
+        const button = document.getElementById(buttonId);
+        if (isLoading) {
+          button.classList.add('loading');
+          button.disabled = true;
+        } else {
+          button.classList.remove('loading');
+          button.disabled = false;
+        }
+      }
+
+      function showStatus(message) {
+        const statusMessage = document.getElementById('statusMessage');
+        statusMessage.textContent = message;
+        statusMessage.style.display = 'block';
+        setTimeout(() => {
+          statusMessage.style.display = 'none';
+        }, 3000);
+      }
+
+      function showError(message) {
+        const errorMessage = document.getElementById('errorMessage');
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        setTimeout(() => {
+          errorMessage.style.display = 'none';
+        }, 5000);
+      }
+
+      window.onload = renderUI;
+    </script>
+  </body>
+</html>
+</script>
